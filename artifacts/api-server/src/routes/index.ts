@@ -6,6 +6,7 @@ import speakingRouter from "./speaking";
 import speakingCourseRouter from "./speakingCourse";
 import speakingAssessmentsRouter from "./speakingAssessments";
 import speakingDiagnosticsRouter from "./speakingDiagnostics";
+import adminRouter from "./admin";
 import { requireAuth } from "../lib/authSession";
 
 const router: IRouter = Router();
@@ -21,5 +22,6 @@ router.use(speakingRouter);
 router.use(speakingCourseRouter);
 router.use(speakingAssessmentsRouter);
 router.use(speakingDiagnosticsRouter);
+router.use(adminRouter);
 
 export default router;

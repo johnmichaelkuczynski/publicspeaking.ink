@@ -1,6 +1,7 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { OAuth2Client } from "google-auth-library";
 import crypto from "node:crypto";
+import { db, loginEventsTable } from "@workspace/db";
 import {
   setSessionCookie,
   clearSessionCookie,
@@ -117,6 +118,15 @@ router.get(
         name: payload.name ?? payload.email,
         picture: payload.picture,
       });
+      try {
+        await db.insert(loginEventsTable).values({
+          googleSub: payload.sub,
+          email: payload.email,
+          name: payload.name ?? payload.email,
+        });
+      } catch (logErr) {
+        req.log.error({ err: logErr }, "Failed to record login event");
+      }
       res.redirect("/");
     } catch (err) {
       req.log.error({ err }, "Google OAuth code exchange failed");

@@ -327,6 +327,19 @@ paths:
               schema:
                 $ref: "#/components/schemas/SpeakingProgress"
 
+  /admin/logins:
+    get:
+      operationId: getAdminLogins
+      tags: [ speaking ]
+      summary: Login history and login-count analytics for the Administrative page
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminLoginsView"
+
   /speaking/flagged:
     get:
       operationId: getSpeakingFlagged
@@ -1559,3 +1572,33 @@ components:
       properties:
         status: { type: string }
       required: [ status ]
+
+    LoginEvent:
+      type: object
+      required: [ id, email, name, at ]
+      properties:
+        id: { type: integer }
+        email: { type: string }
+        name: { type: string }
+        at: { type: string, format: date-time }
+
+    AdminLoginTotals:
+      type: object
+      required: [ day, week, month, year, allTime ]
+      properties:
+        day: { type: integer }
+        week: { type: integer }
+        month: { type: integer }
+        year: { type: integer }
+        allTime: { type: integer }
+
+    AdminLoginsView:
+      type: object
+      required: [ events, totals ]
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/LoginEvent"
+        totals:
+          $ref: "#/components/schemas/AdminLoginTotals"

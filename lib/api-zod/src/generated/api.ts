@@ -496,6 +496,26 @@ export const GetSpeakingProgressResponse = zod.object({
 
 
 /**
+ * @summary Login history and login-count analytics for the Administrative page
+ */
+export const GetAdminLoginsResponse = zod.object({
+  "events": zod.array(zod.object({
+  "id": zod.number(),
+  "email": zod.string(),
+  "name": zod.string(),
+  "at": zod.coerce.date()
+})),
+  "totals": zod.object({
+  "day": zod.number(),
+  "week": zod.number(),
+  "month": zod.number(),
+  "year": zod.number(),
+  "allTime": zod.number()
+})
+})
+
+
+/**
  * @summary Submissions flagged for AI authorship across all attempts
  */
 export const GetSpeakingFlaggedResponse = zod.object({

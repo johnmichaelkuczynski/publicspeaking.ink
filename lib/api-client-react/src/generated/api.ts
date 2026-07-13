@@ -20,6 +20,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AdminLoginsView,
   AskPracticeTutorRequest,
   Assessment,
   AssessmentsOverview,
@@ -1030,6 +1031,83 @@ export function useGetSpeakingProgress<TData = Awaited<ReturnType<typeof getSpea
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetSpeakingProgressQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetAdminLoginsUrl = () => {
+
+
+
+
+  return `/api/admin/logins`
+}
+
+/**
+ * @summary Login history and login-count analytics for the Administrative page
+ */
+export const getAdminLogins = async ( options?: RequestInit): Promise<AdminLoginsView> => {
+
+  return customFetch<AdminLoginsView>(getGetAdminLoginsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdminLoginsQueryKey = () => {
+    return [
+    `/api/admin/logins`
+    ] as const;
+    }
+
+
+export const getGetAdminLoginsQueryOptions = <TData = Awaited<ReturnType<typeof getAdminLogins>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminLogins>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdminLoginsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminLogins>>> = ({ signal }) => getAdminLogins({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdminLogins>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAdminLoginsQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminLogins>>>
+export type GetAdminLoginsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Login history and login-count analytics for the Administrative page
+ */
+
+export function useGetAdminLogins<TData = Awaited<ReturnType<typeof getAdminLogins>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminLogins>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAdminLoginsQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

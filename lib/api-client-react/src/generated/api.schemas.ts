@@ -800,3 +800,23 @@ export interface HealthStatus {
   status: string;
 }
 
+export interface LoginEvent {
+  id: number;
+  email: string;
+  name: string;
+  at: string;
+}
+
+export interface AdminLoginTotals {
+  day: number;
+  week: number;
+  month: number;
+  year: number;
+  allTime: number;
+}
+
+export interface AdminLoginsView {
+  events: LoginEvent[];
+  totals: AdminLoginTotals;
+}
+

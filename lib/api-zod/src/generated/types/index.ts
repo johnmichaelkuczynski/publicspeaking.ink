@@ -6,6 +6,8 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './adminLoginsView';
+export * from './adminLoginTotals';
 export * from './askPracticeTutorRequest';
 export * from './assessment';
 export * from './assessmentCredit';
@@ -37,6 +39,7 @@ export * from './lectureTutorMessageRole';
 export * from './lectureTutorReply';
 export * from './lectureTutorRequest';
 export * from './lectureTutorSuggestions';
+export * from './loginEvent';
 export * from './narrativeReport';
 export * from './resetCourseResult';
 export * from './resetCourseResultDeleted';
