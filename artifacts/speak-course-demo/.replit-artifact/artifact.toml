@@ -1,0 +1,31 @@
+kind = "video"
+previewPath = "/speak-demo/"
+title = "Podium — Public Speaking Studio Demo"
+version = "1.0.0"
+id = "artifacts/speak-course-demo"
+router = "path"
+
+[[integratedSkills]]
+name = "video-js"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/speak-demo/" ]
+localPort = 26007
+
+[services.development]
+run = "pnpm --filter @workspace/speak-course-demo run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/speak-course-demo", "run", "build" ]
+publicDir = "artifacts/speak-course-demo/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "26007"
+BASE_PATH = "/speak-demo/"

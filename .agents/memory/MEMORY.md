@@ -1,0 +1,6 @@
+- [Course subject migration](course-subject-migration.md) — rebranding/subject-swapping this AI-course app touches far more than seed.ts; checklist of the non-obvious surfaces.
+- [video-js scene import quirk](video-js-scene-imports.md) — DESIGN subagent's generated scene files import animations with an off-by-one relative path; fix with the `@/lib/video` alias.
+- [Re-record must always be available](recording-rerecord-ux.md) — shared AudioRecorder "Record again" is never gated on busy/disabled; use per-question take tokens so stale transcription can't trap the user or overwrite a fresh take.
+- [Speaking metrics units](speaking-metrics-units.md) — server `fillerRate` is already per-100-words, not a 0–1 fraction; don't multiply by 100 when displaying.
+- [Podium speak-course design](speak-course-design.md) — intentional scope choices (GPTZero diagnostics-only, 502-on-AI-fail, DB-direct synthetic spoken path) so reviews don't re-flag them.
+- [Assessment grading parity](assessment-grading.md) — assessments are a separate flow from assignments and silently gave no feedback; every speech-submit surface must run evaluateResponse + persist.
