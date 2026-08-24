@@ -10,8 +10,7 @@ import { logger } from "./lib/logger";
 
 const app: Express = express();
 
-// Behind the Replit reverse proxy: trust X-Forwarded-* so req.protocol and
-// req.get("host") reflect the public URL (needed for the OAuth redirect URI).
+// Behind the Replit reverse proxy, trust forwarded request metadata.
 app.set("trust proxy", true);
 
 app.use(

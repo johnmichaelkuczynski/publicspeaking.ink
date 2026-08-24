@@ -4,3 +4,4 @@
 - [Speaking metrics units](speaking-metrics-units.md) — server `fillerRate` is already per-100-words, not a 0–1 fraction; don't multiply by 100 when displaying.
 - [Podium speak-course design](speak-course-design.md) — intentional scope choices (GPTZero diagnostics-only, 502-on-AI-fail, DB-direct synthetic spoken path) so reviews don't re-flag them.
 - [Assessment grading parity](assessment-grading.md) — assessments are a separate flow from assignments and silently gave no feedback; every speech-submit surface must run evaluateResponse + persist.
+- [Temporary public access](temporary-public-access.md) — Podium currently has no user login; keep all features public while preserving recording-storage sessions and historical login analytics.

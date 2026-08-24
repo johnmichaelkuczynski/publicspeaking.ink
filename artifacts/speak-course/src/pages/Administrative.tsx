@@ -163,7 +163,7 @@ export default function Administrative() {
           Administrative
         </h1>
         <p className="text-muted-foreground mt-1">
-          Google sign-in history and login analytics.
+          Historical sign-in records and login analytics.
         </p>
       </div>
 
@@ -239,7 +239,7 @@ export default function Administrative() {
         <CardContent>
           {data.events.length === 0 ? (
             <p className="text-sm text-muted-foreground py-6 text-center">
-              No logins recorded yet. New Google sign-ins will appear here.
+              No historical login records are available.
             </p>
           ) : (
             <Table>

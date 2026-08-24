@@ -1,11 +1,8 @@
 import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { useAuth } from "@/hooks/useAuth";
 import NotFound from "@/pages/not-found";
-import Landing from "@/pages/Landing";
 
 import { Layout } from "@/components/layout/Layout";
 import Dashboard from "@/pages/Dashboard";
@@ -47,33 +44,13 @@ function Router() {
   );
 }
 
-function AuthGate() {
-  const { isLoading, isAuthenticated } = useAuth();
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return <Landing />;
-  }
-
-  return (
-    <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-      <Router />
-    </WouterRouter>
-  );
-}
-
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <AuthGate />
+        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+          <Router />
+        </WouterRouter>
         <Toaster />
       </TooltipProvider>
     </QueryClientProvider>

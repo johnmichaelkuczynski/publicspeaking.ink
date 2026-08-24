@@ -12,7 +12,6 @@ import {
   Sparkles,
   RotateCcw,
   Loader2,
-  LogOut,
 } from "lucide-react";
 import {
   useGenerateSpeakingLectures,
@@ -30,7 +29,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth, logout } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -44,7 +42,6 @@ const NAV = [
 
 export function Layout({ children }: { children: ReactNode }) {
   const [location] = useLocation();
-  const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [resetOpen, setResetOpen] = useState(false);
@@ -171,22 +168,6 @@ export function Layout({ children }: { children: ReactNode }) {
               <RotateCcw className="w-4 h-4" />
               Reset course
             </Button>
-            {user && (
-              <>
-                <span className="text-xs text-muted-foreground hidden sm:inline max-w-[160px] truncate">
-                  {user.name}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => void logout()}
-                  className="gap-2 text-muted-foreground"
-                >
-                  <LogOut className="w-4 h-4" />
-                  Log out
-                </Button>
-              </>
-            )}
           </div>
         </header>
 

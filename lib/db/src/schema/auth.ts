@@ -1,7 +1,6 @@
 import { pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
 
-// Append-only log of every successful Google sign-in, powering the
-// Administrative page (who logged in, when, and login-count analytics).
+// Historical sign-in records retained for the Administrative analytics page.
 export const loginEventsTable = pgTable("login_events", {
   id: serial("id").primaryKey(),
   googleSub: text("google_sub").notNull(),
