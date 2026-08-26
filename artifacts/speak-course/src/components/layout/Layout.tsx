@@ -2,7 +2,6 @@ import { ReactNode, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  Mic2,
   LayoutDashboard,
   ClipboardList,
   GraduationCap,
@@ -12,6 +11,7 @@ import {
   Sparkles,
   RotateCcw,
   Loader2,
+  Mail,
 } from "lucide-react";
 import {
   useGenerateSpeakingLectures,
@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import zhiLogo from "@assets/zhi_logoc_1787769814151.png";
 
 const NAV = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -99,12 +100,26 @@ export function Layout({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-background text-foreground flex flex-col md:flex-row">
       <aside className="w-full md:w-60 bg-sidebar border-r border-sidebar-border flex-shrink-0 flex flex-col">
         <div className="p-6">
-          <Link href="/">
-            <div className="flex items-center gap-2 font-serif text-2xl font-bold text-primary cursor-pointer">
-              <Mic2 className="w-7 h-7" />
-              Podium
-            </div>
-          </Link>
+          <div className="flex items-center gap-2">
+            <a
+              href="https://zhisystems.ai/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Visit ZHI Systems"
+              className="shrink-0 rounded-md border border-sidebar-border shadow-sm transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <img
+                src={zhiLogo}
+                alt="ZHI Systems"
+                className="h-8 w-8 rounded-[5px]"
+              />
+            </a>
+            <Link href="/">
+              <span className="font-serif text-2xl font-bold text-primary cursor-pointer">
+                Podium
+              </span>
+            </Link>
+          </div>
           <p className="text-xs text-muted-foreground mt-1 font-medium tracking-wide uppercase">
             Public Speaking Studio
           </p>
@@ -133,12 +148,19 @@ export function Layout({ children }: { children: ReactNode }) {
           })}
         </nav>
 
-        <div className="p-3 text-[11px] text-muted-foreground">
+        <div className="p-3 text-[11px] text-muted-foreground space-y-2">
           <Link href="/diagnostics">
-            <span className="cursor-pointer hover:text-foreground transition-colors">
+            <span className="block cursor-pointer hover:text-foreground transition-colors">
               System diagnostics
             </span>
           </Link>
+          <a
+            href="mailto:johnmichaelkuczynski@gmail.com"
+            className="flex items-center gap-1.5 hover:text-foreground transition-colors"
+          >
+            <Mail className="h-3 w-3" />
+            Contact us
+          </a>
         </div>
       </aside>
 
