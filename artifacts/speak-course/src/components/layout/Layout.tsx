@@ -146,21 +146,21 @@ export function Layout({ children }: { children: ReactNode }) {
               </Link>
             );
           })}
+          <a
+            href="mailto:johnmichaelkuczynski@gmail.com"
+            className="flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          >
+            <Mail className="w-[18px] h-[18px]" />
+            <span>Contact us</span>
+          </a>
         </nav>
 
-        <div className="p-3 text-[11px] text-muted-foreground space-y-2">
+        <div className="p-3 text-[11px] text-muted-foreground">
           <Link href="/diagnostics">
             <span className="block cursor-pointer hover:text-foreground transition-colors">
               System diagnostics
             </span>
           </Link>
-          <a
-            href="mailto:johnmichaelkuczynski@gmail.com"
-            className="flex items-center gap-1.5 hover:text-foreground transition-colors"
-          >
-            <Mail className="h-3 w-3" />
-            Contact us
-          </a>
         </div>
       </aside>
 
