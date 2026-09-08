@@ -12,13 +12,85 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Podium — Public Speaking Studio" />
     <meta name="twitter:description" content="Podium — Public Speaking Studio — built on Replit. Update this description to reflect the app." />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Course",
+        "name": "Podium Public Speaking Course",
+        "description": "A practical public speaking course with guided lessons, speaking practice, AI-powered feedback, assessments, and progress analytics.",
+        "provider": {
+          "@type": "Organization",
+          "name": "Podium"
+        },
+        "educationalLevel": "Beginner to advanced",
+        "teaches": [
+          "Public speaking",
+          "Speech delivery",
+          "Audience engagement",
+          "Speaking practice",
+          "Presentation confidence"
+        ],
+        "hasCourseInstance": {
+          "@type": "CourseInstance",
+          "courseMode": "online",
+          "courseWorkload": "Self-paced"
+        }
+      }
+    </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <header>
+        <nav aria-label="Podium course navigation">
+          <a href="/">Podium</a>
+          <a href="/assignments">Speaking assignments</a>
+          <a href="/assessments">Speaking assessments</a>
+        </nav>
+      </header>
+      <main>
+        <section>
+          <h1>Build public speaking confidence with guided practice and AI feedback</h1>
+          <p>
+            Podium is an online public speaking course and AI public speaking
+            coach that helps you plan, record, and improve speeches at your own
+            pace.
+          </p>
+          <p>
+            Follow structured lessons, complete realistic speaking practice,
+            and receive actionable feedback on delivery, clarity, pacing, and
+            audience engagement.
+          </p>
+        </section>
+        <section aria-labelledby="course-features">
+          <h2 id="course-features">A complete public speaking practice studio</h2>
+          <ul>
+            <li>Guided lessons that build practical speaking skills step by step</li>
+            <li>Recorded speech assignments with focused, AI-powered feedback</li>
+            <li>Assessments that measure progress and strengthen presentation confidence</li>
+            <li>Speaking analytics that make improvement clear and measurable</li>
+          </ul>
+        </section>
+        <section aria-labelledby="start-course">
+          <h2 id="start-course">Start improving your next speech</h2>
+          <p>
+            Explore the course dashboard, begin a speaking assignment, or take
+            an assessment to identify the skills to practice next.
+          </p>
+          <ul>
+            <li><a href="/">Explore the public speaking course</a></li>
+            <li><a href="/assignments">Practice with speaking assignments</a></li>
+            <li><a href="/assessments">Measure your speaking skills</a></li>
+          </ul>
+        </section>
+      </main>
+      <footer>
+        <p>Podium — Public Speaking Studio</p>
+      </footer>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

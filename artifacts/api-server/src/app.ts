@@ -65,11 +65,25 @@ if (process.env.NODE_ENV === "production") {
 
   if (staticDir) {
     const indexHtml = path.join(staticDir, "index.html");
+    const publicLandingHtml = fs.readFileSync(indexHtml, "utf8");
+    const privateAppHtml = publicLandingHtml.replace(
+      '<meta name="robots" content="index, follow" />',
+      '<meta name="robots" content="noindex, nofollow" />',
+    );
     logger.info({ staticDir }, "Serving speak-course static bundle");
     app.use(express.static(staticDir, { index: false }));
-    app.get(/^\/(?!api\/).*/, (_req, res, next) => {
+    app.get(/^\/(?!api\/).*/, (req, res, next) => {
       if (!fs.existsSync(indexHtml)) return next();
-      res.sendFile(indexHtml);
+
+      if (req.path === "/") {
+        res.type("html").send(publicLandingHtml);
+        return;
+      }
+
+      // Course operations remain available to the SPA, but should not become
+      // duplicate or thin search results.
+      res.set("X-Robots-Tag", "noindex, nofollow");
+      res.type("html").send(privateAppHtml);
     });
   } else {
     logger.warn(
