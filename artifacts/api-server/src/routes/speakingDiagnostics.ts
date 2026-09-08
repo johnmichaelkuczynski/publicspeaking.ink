@@ -71,10 +71,26 @@ router.get("/speaking/diagnostics/system", async (_req, res) => {
   );
 
   steps.push(
-    await run("Environment: object storage configured", async () => {
-      if (!process.env.PRIVATE_OBJECT_DIR)
-        throw new Error("PRIVATE_OBJECT_DIR is not set");
-      return "ok";
+    await run("Object storage: signed upload, read-back, and cleanup", async () => {
+      const storage = new ObjectStorageService();
+      const uploadURL = await storage.getObjectEntityUploadURL();
+      const objectPath = storage.normalizeObjectEntityPath(uploadURL);
+      const payload = Buffer.from("Podium recording storage diagnostic");
+      try {
+        const uploaded = await fetch(uploadURL, {
+          method: "PUT",
+          headers: { "Content-Type": "application/octet-stream" },
+          body: payload,
+          signal: AbortSignal.timeout(20000),
+        });
+        if (!uploaded.ok) throw new Error(`Storage upload rejected (HTTP ${uploaded.status})`);
+        const file = await storage.getObjectEntityFile(objectPath);
+        const [readBack] = await file.download();
+        if (!readBack.equals(payload)) throw new Error("Storage read-back did not match upload");
+      } finally {
+        await storage.deleteObjectEntity(objectPath);
+      }
+      return "Signed upload URL created; test file uploaded, read back byte-for-byte, and deleted.";
     }),
   );
 

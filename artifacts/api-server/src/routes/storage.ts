@@ -44,7 +44,9 @@ router.post("/storage/uploads/request-url", async (req: Request, res: Response) 
     );
   } catch (error) {
     req.log.error({ err: error }, "Error generating upload URL");
-    res.status(500).json({ error: "Failed to generate upload URL" });
+    res.status(503).json({
+      error: "Recording storage is unavailable. Your recording has not been submitted. Keep this page open and retry after storage access is restored.",
+    });
   }
 });
 

@@ -757,8 +757,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorEnvelope"
-        "500":
-          description: Failed to generate upload URL.
+        "503":
+          description: Recording storage is unavailable; retain the recording and retry after access is restored.
           content:
             application/json:
               schema:

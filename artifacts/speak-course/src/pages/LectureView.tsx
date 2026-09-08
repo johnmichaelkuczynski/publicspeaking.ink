@@ -1,7 +1,7 @@
 import { useGetSpeakingLecture, getGetSpeakingLectureQueryKey, useGetSpeakingOverview } from "@workspace/api-client-react";
 import { useRoute } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MarkdownRenderer } from "@/components/MarkdownRenderer";
+import ReactMarkdown from "react-markdown";
 import { LectureTutor } from "@/components/LectureTutor";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
@@ -120,7 +120,9 @@ export default function LectureView() {
           </div>
 
           <div className="bg-card border rounded-lg p-6 md:p-10 shadow-sm text-lg leading-relaxed">
-            <MarkdownRenderer content={lecture.body} />
+            <div className="prose prose-lg max-w-none text-foreground prose-headings:font-serif prose-headings:text-foreground prose-strong:text-foreground prose-a:text-primary">
+              <ReactMarkdown>{lecture.body}</ReactMarkdown>
+            </div>
           </div>
 
           <div className="mt-8">

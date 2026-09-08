@@ -5,3 +5,4 @@
 - [Podium speak-course design](speak-course-design.md) — intentional scope choices (GPTZero diagnostics-only, 502-on-AI-fail, DB-direct synthetic spoken path) so reviews don't re-flag them.
 - [Assessment grading parity](assessment-grading.md) — assessments are a separate flow from assignments and silently gave no feedback; every speech-submit surface must run evaluateResponse + persist.
 - [Temporary public access](temporary-public-access.md) — Podium currently has no user login; keep all features public while preserving recording-storage sessions and historical login analytics.
+- [Storage readiness](storage-readiness.md) — configured storage paths do not prove bucket access; verify signing and a real upload/read-back separately from user login.
