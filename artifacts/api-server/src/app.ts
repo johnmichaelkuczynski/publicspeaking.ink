@@ -10,6 +10,16 @@ import { logger } from "./lib/logger";
 
 const app: Express = express();
 
+const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://publicspeaking101.xyz/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>
+`;
+
 // Behind the Replit reverse proxy, trust forwarded request metadata.
 app.set("trust proxy", true);
 
@@ -38,6 +48,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", router);
+
+// Keep crawl-control resources out of the SPA fallback and development proxy.
+app.get("/sitemap.xml", (_req, res) => {
+  res.type("application/xml").send(sitemapXml);
+});
 
 // In development, proxy all non-API requests to the Vite dev server.
 if (process.env.NODE_ENV !== "production") {

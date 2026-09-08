@@ -1,2 +1,3 @@
 User-agent: *
 Allow: /
+Sitemap: https://publicspeaking101.xyz/sitemap.xml
