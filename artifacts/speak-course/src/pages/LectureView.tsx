@@ -4,11 +4,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import ReactMarkdown from "react-markdown";
 import { LectureTutor } from "@/components/LectureTutor";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight } from "lucide-react";
-import { Link, useLocation } from "wouter";
+import { ArrowLeft } from "lucide-react";
+import { Link } from "wouter";
+import { SequenceNavigation } from "@/components/SequenceNavigation";
 
 interface LectureNavItem {
   id: number;
+  title: string;
 }
 
 function LectureNav({
@@ -18,35 +20,11 @@ function LectureNav({
   prev: LectureNavItem | null;
   next: LectureNavItem | null;
 }) {
-  const [, setLocation] = useLocation();
-  if (!prev && !next) return null;
   return (
-    <div className="flex items-center justify-between gap-3">
-      {prev ? (
-        <Button
-          variant="outline"
-          onClick={() => setLocation(`/lectures/${prev.id}`)}
-          aria-label="Previous lecture"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Previous Lecture
-        </Button>
-      ) : (
-        <span />
-      )}
-      {next ? (
-        <Button
-          variant="outline"
-          onClick={() => setLocation(`/lectures/${next.id}`)}
-          aria-label="Next lecture"
-        >
-          Next Lecture
-          <ArrowRight className="w-4 h-4 ml-2" />
-        </Button>
-      ) : (
-        <span />
-      )}
-    </div>
+    <SequenceNavigation
+      previous={prev && { href: `/lectures/${prev.id}`, label: `Previous lecture: ${prev.title}` }}
+      next={next && { href: `/lectures/${next.id}`, label: `Next lecture: ${next.title}` }}
+    />
   );
 }
 
@@ -63,7 +41,9 @@ export default function LectureView() {
 
   const { data: overview } = useGetSpeakingOverview();
 
-  const orderedLectures = (overview?.units ?? []).flatMap((u) => u.lectures);
+  const orderedLectures = [...(overview?.units ?? [])]
+    .sort((a, b) => a.unitNumber - b.unitNumber)
+    .flatMap((u) => u.lectures);
   const currentIndex = orderedLectures.findIndex((l) => l.id === lectureId);
   const prevLecture =
     currentIndex > 0 ? orderedLectures[currentIndex - 1] : null;

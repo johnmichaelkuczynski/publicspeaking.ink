@@ -6,3 +6,4 @@
 - [Assessment grading parity](assessment-grading.md) — assessments are a separate flow from assignments and silently gave no feedback; every speech-submit surface must run evaluateResponse + persist.
 - [Temporary public access](temporary-public-access.md) — Podium currently has no user login; keep all features public while preserving recording-storage sessions and historical login analytics.
 - [Storage readiness](storage-readiness.md) — configured storage paths do not prove bucket access; verify signing and a real upload/read-back separately from user login.
+- [Course navigation](course-navigation.md) — keep direct arrow navigation between units and lectures; never require returning to the unit overview to continue.

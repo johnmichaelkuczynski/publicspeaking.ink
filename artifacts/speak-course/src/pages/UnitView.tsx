@@ -1,14 +1,26 @@
-import { useGetSpeakingUnit } from "@workspace/api-client-react";
+import { useGetSpeakingUnit, useGetSpeakingOverview } from "@workspace/api-client-react";
 import { useRoute } from "wouter";
 import { getGetSpeakingUnitQueryKey } from "@workspace/api-client-react";
 import { Link } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { BookOpen, Mic2, ArrowRight } from "lucide-react";
+import { SequenceNavigation } from "@/components/SequenceNavigation";
 
 export default function UnitView() {
   const [, params] = useRoute("/units/:unitNumber");
   const unitNumber = params?.unitNumber ? parseInt(params.unitNumber, 10) : 0;
+  const { data: overview } = useGetSpeakingOverview();
+  const units = [...(overview?.units ?? [])].sort((a, b) => a.unitNumber - b.unitNumber);
+  const index = units.findIndex((item) => item.unitNumber === unitNumber);
+  const previous = index > 0 ? units[index - 1] : null;
+  const next = index >= 0 ? units[index + 1] : null;
+  const navigation = (
+    <SequenceNavigation
+      previous={previous && { href: `/units/${previous.unitNumber}`, label: `Previous unit: ${previous.title}` }}
+      next={next && { href: `/units/${next.unitNumber}`, label: `Next unit: ${next.title}` }}
+    />
+  );
 
   const { data: unit, isLoading, error } = useGetSpeakingUnit(unitNumber, {
     query: {
@@ -40,6 +52,7 @@ export default function UnitView() {
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {navigation}
       <div>
         <div className="text-sm font-medium text-primary mb-1 uppercase tracking-wider">Unit {unit.unitNumber}</div>
         <h1 className="text-4xl font-serif font-bold text-foreground">
@@ -105,6 +118,7 @@ export default function UnitView() {
           )}
         </div>
       </div>
+      {navigation}
     </div>
   );
 }
