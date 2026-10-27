@@ -1,5 +1,6 @@
 import { Router, type IRouter } from "express";
-import { asc, eq, sql } from "drizzle-orm";
+import { asc, eq, sql, and } from "drizzle-orm";
+import { owned, studentId } from "../lib/studentContext";
 import {
   db,
   speakingTopicsTable,
@@ -180,6 +181,9 @@ router.get("/speaking/diagnostics/system", async (_req, res) => {
 
 // ---------- Diagnostic 2: synthetic student (written reflection end-to-end) ----------
 router.post("/speaking/diagnostics/synthetic-run", async (_req, res) => {
+  const setCookies = res.getHeader("set-cookie");
+  const cookie = [_req.headers.cookie, ...(Array.isArray(setCookies) ? setCookies : setCookies ? [String(setCookies)] : []).map(c => c.split(";")[0])]
+    .filter(Boolean).join("; ");
   const steps: Step[] = [];
   res.setTimeout(10 * 60 * 1000);
 
@@ -223,7 +227,7 @@ router.post("/speaking/diagnostics/synthetic-run", async (_req, res) => {
       if (assignmentId == null) throw new Error("no assignment resolved");
       const [created] = await db
         .insert(speakingAttemptsTable)
-        .values({ assignmentId, status: "in_progress" })
+        .values({ assignmentId, status: "in_progress", ownerId: studentId() })
         .returning();
       if (!created) throw new Error("could not create attempt");
       attemptId = created.id;
@@ -257,6 +261,7 @@ router.post("/speaking/diagnostics/synthetic-run", async (_req, res) => {
       const [saved] = await db
         .insert(speakingResponsesTable)
         .values({
+          ownerId: studentId(),
           attemptId,
           promptId: writtenPromptId,
           mode: "written",
@@ -314,11 +319,11 @@ router.post("/speaking/diagnostics/synthetic-run", async (_req, res) => {
       const submitted = await db
         .select()
         .from(speakingAttemptsTable)
-        .where(eq(speakingAttemptsTable.status, "submitted"));
+        .where(and(owned(speakingAttemptsTable), eq(speakingAttemptsTable.status, "submitted")));
       const graded = await db
         .select()
         .from(speakingResponsesTable)
-        .where(eq(speakingResponsesTable.status, "graded"));
+        .where(and(owned(speakingResponsesTable), eq(speakingResponsesTable.status, "graded")));
       if (submitted.length < 1) throw new Error("no submitted attempts visible");
       if (graded.length < 1) throw new Error("no graded responses visible");
       return `${submitted.length} submitted attempts · ${graded.length} graded responses`;
@@ -350,7 +355,7 @@ router.post("/speaking/diagnostics/synthetic-run", async (_req, res) => {
       if (!prompt) throw new Error("spoken prompt vanished");
       const [created] = await db
         .insert(speakingAttemptsTable)
-        .values({ assignmentId: prompt.assignmentId, status: "in_progress" })
+        .values({ assignmentId: prompt.assignmentId, status: "in_progress", ownerId: studentId() })
         .returning();
       if (!created) throw new Error("could not create spoken attempt");
       spokenAttemptId = created.id;
@@ -363,7 +368,7 @@ router.post("/speaking/diagnostics/synthetic-run", async (_req, res) => {
       const fixture = getDiagnosticSpokenFixture();
       const urlRes = await fetch(`${apiBase}/storage/uploads/request-url`, {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", cookie },
         body: JSON.stringify({
           name: DIAGNOSTIC_SPOKEN_FIXTURE_FILENAME,
           size: fixture.byteLength,
@@ -403,7 +408,7 @@ router.post("/speaking/diagnostics/synthetic-run", async (_req, res) => {
         `${apiBase}/speaking/attempts/${spokenAttemptId}/responses`,
         {
           method: "POST",
-          headers: { "content-type": "application/json" },
+          headers: { "content-type": "application/json", cookie },
           body: JSON.stringify({
             promptId: spokenPromptId,
             mode: "spoken",

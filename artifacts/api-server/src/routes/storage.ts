@@ -1,4 +1,7 @@
 import { Router, type IRouter, type Request, type Response } from "express";
+import { db, speakingUploadsTable } from "@workspace/db";
+import { studentId } from "../lib/studentContext";
+import { ownsUpload } from "../lib/uploadOwnership";
 import { Readable } from "stream";
 import {
   RequestUploadUrlBody,
@@ -34,6 +37,7 @@ router.post("/storage/uploads/request-url", async (req: Request, res: Response) 
 
     const uploadURL = await objectStorageService.getObjectEntityUploadURL();
     const objectPath = objectStorageService.normalizeObjectEntityPath(uploadURL);
+    await db.insert(speakingUploadsTable).values({ objectPath, ownerId: studentId() });
 
     res.json(
       RequestUploadUrlResponse.parse({
@@ -110,7 +114,7 @@ router.get("/storage/objects/*path", async (req: Request, res: Response) => {
       objectFile,
       requestedPermission: ObjectPermission.READ,
     });
-    if (!canAccess) {
+    if (!canAccess && !(await ownsUpload(objectPath))) {
       res.status(403).json({ error: "Forbidden" });
       return;
     }

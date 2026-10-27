@@ -1,4 +1,5 @@
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
+import { owned, visibleAssignment } from "./studentContext";
 import {
   db,
   speakingAssignmentsTable,
@@ -53,14 +54,14 @@ function normalizeFix(text: string): string {
 export async function computeSpeakingAnalytics(): Promise<SpeakingAnalytics> {
   const [assignments, prompts, responses, attempts, topics, activity] =
     await Promise.all([
-      db.select().from(speakingAssignmentsTable),
+      db.select().from(speakingAssignmentsTable).where(visibleAssignment()),
       db.select().from(speakingPromptsTable),
-      db.select().from(speakingResponsesTable),
-      db.select().from(speakingAttemptsTable),
+      db.select().from(speakingResponsesTable).where(owned(speakingResponsesTable)),
+      db.select().from(speakingAttemptsTable).where(owned(speakingAttemptsTable)),
       db.select().from(speakingTopicsTable),
       db
         .select({ id: speakingActivityTable.id, type: speakingActivityTable.type })
-        .from(speakingActivityTable),
+        .from(speakingActivityTable).where(owned(speakingActivityTable)),
     ]);
 
   const practiceAssignmentIds = new Set(
@@ -196,7 +197,7 @@ export interface RecentFeedback {
  * feedback, used to give the profile generator concrete, current material.
  */
 export async function recentFeedback(limit = 12): Promise<RecentFeedback[]> {
-  const responses = await db.select().from(speakingResponsesTable);
+  const responses = await db.select().from(speakingResponsesTable).where(owned(speakingResponsesTable));
   const prompts = await db.select().from(speakingPromptsTable);
   const topics = await db.select().from(speakingTopicsTable);
   const promptTopicById = new Map(prompts.map((p) => [p.id, p.topicId ?? null]));
@@ -246,7 +247,7 @@ export async function existingPromptTexts(
     .select({ id: speakingAssignmentsTable.id })
     .from(speakingAssignmentsTable)
     .where(
-      eq(speakingAssignmentsTable.practiceForAssignmentId, gradedAssignmentId),
+      and(owned(speakingAssignmentsTable), eq(speakingAssignmentsTable.practiceForAssignmentId, gradedAssignmentId)),
     );
   const ids = [gradedAssignmentId, ...practiceAssignments.map((a) => a.id)];
   const prompts = await db.select().from(speakingPromptsTable);

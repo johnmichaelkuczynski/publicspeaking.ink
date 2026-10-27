@@ -1,5 +1,7 @@
 import { Router, type IRouter, type Request, type Response } from "express";
-import { eq, asc, desc } from "drizzle-orm";
+import { eq, asc, desc, and } from "drizzle-orm";
+import { owned, studentId } from "../lib/studentContext";
+import { ownsUpload } from "../lib/uploadOwnership";
 import { db, speakingAssessmentsTable } from "@workspace/db";
 import {
   GetSpeakingAssessmentsResponse,
@@ -220,6 +222,7 @@ router.get("/speaking/assessments", async (_req: Request, res: Response) => {
   const all = await db
     .select()
     .from(speakingAssessmentsTable)
+    .where(owned(speakingAssessmentsTable))
     .orderBy(desc(speakingAssessmentsTable.id));
 
   const latestByKeyFormat = new Map<string, AssessmentRow>();
@@ -326,6 +329,7 @@ router.post(
       const [row] = await db
         .insert(speakingAssessmentsTable)
         .values({
+          ownerId: studentId(),
           slotKey,
           scope,
           unitNumber,
@@ -388,6 +392,7 @@ router.post(
       const [row] = await db
         .insert(speakingAssessmentsTable)
         .values({
+          ownerId: studentId(),
           slotKey: "custom",
           scope: "custom",
           unitNumber: null,
@@ -426,7 +431,7 @@ router.get(
     const [row] = await db
       .select()
       .from(speakingAssessmentsTable)
-      .where(eq(speakingAssessmentsTable.id, id));
+      .where(and(owned(speakingAssessmentsTable), eq(speakingAssessmentsTable.id, id)));
     if (!row) {
       res.status(404).json({ error: { message: "Assessment not found." } });
       return;
@@ -457,7 +462,7 @@ router.post(
     const [existing] = await db
       .select()
       .from(speakingAssessmentsTable)
-      .where(eq(speakingAssessmentsTable.id, id));
+      .where(and(owned(speakingAssessmentsTable), eq(speakingAssessmentsTable.id, id)));
     if (!existing) {
       res.status(404).json({ error: { message: "Assessment not found." } });
       return;
@@ -496,7 +501,7 @@ router.post(
     await db
       .update(speakingAssessmentsTable)
       .set({ answers })
-      .where(eq(speakingAssessmentsTable.id, id));
+      .where(and(owned(speakingAssessmentsTable), eq(speakingAssessmentsTable.id, id)));
 
     // Align delivery metrics to questions (null for written/untranscribed).
     const rawMetrics = Array.isArray(parsed.data.metrics)
@@ -529,7 +534,7 @@ router.post(
         status: "completed",
         completedAt: new Date(),
       })
-      .where(eq(speakingAssessmentsTable.id, id))
+      .where(and(owned(speakingAssessmentsTable), eq(speakingAssessmentsTable.id, id)))
       .returning();
 
     const body = CompleteSpeakingAssessmentResponse.parse(
@@ -558,7 +563,7 @@ router.post(
     const [existing] = await db
       .select()
       .from(speakingAssessmentsTable)
-      .where(eq(speakingAssessmentsTable.id, id));
+      .where(and(owned(speakingAssessmentsTable), eq(speakingAssessmentsTable.id, id)));
     if (!existing) {
       res.status(404).json({ error: { message: "Assessment not found." } });
       return;
@@ -600,7 +605,7 @@ router.post(
     const [row] = await db
       .update(speakingAssessmentsTable)
       .set({ feedback })
-      .where(eq(speakingAssessmentsTable.id, id))
+      .where(and(owned(speakingAssessmentsTable), eq(speakingAssessmentsTable.id, id)))
       .returning();
 
     const body = GetSpeakingAssessmentResponse.parse(serializeAssessment(row!));
@@ -625,6 +630,10 @@ router.post(
     }
 
     try {
+      if (!(await ownsUpload(parsed.data.objectPath))) {
+        res.status(403).json({ error: "This recording belongs to a different session." });
+        return;
+      }
       const { transcript, metrics } = await transcribeRecording(
         parsed.data.objectPath,
       );

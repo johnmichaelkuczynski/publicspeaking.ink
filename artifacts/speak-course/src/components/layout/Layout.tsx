@@ -1,6 +1,7 @@
 import { ReactNode, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
+import { useUser, useClerk } from "@clerk/react";
 import {
   LayoutDashboard,
   ClipboardList,
@@ -42,6 +43,8 @@ const NAV = [
 ];
 
 export function Layout({ children }: { children: ReactNode }) {
+  const { user } = useUser();
+  const { signOut } = useClerk();
   const [location] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -167,6 +170,18 @@ export function Layout({ children }: { children: ReactNode }) {
       <main className="flex-1 flex flex-col min-w-0 bg-background">
         <header className="border-b border-border bg-card/60 backdrop-blur-sm sticky top-0 z-10">
           <div className="max-w-5xl mx-auto px-4 md:px-8 py-3 flex items-center justify-end gap-2">
+            {user ? (
+              <div className="flex items-center gap-2 mr-auto">
+                <span className="text-xs text-muted-foreground">Progress saved to your account</span>
+                <Button variant="ghost" size="sm" onClick={() => void signOut({ redirectUrl: import.meta.env.BASE_URL })}>
+                  Sign out
+                </Button>
+              </div>
+            ) : (
+              <Button asChild variant="outline" size="sm" className="mr-auto">
+                <Link href="/sign-in">Sign in to save progress</Link>
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"

@@ -6,11 +6,13 @@ import speakingCourseRouter from "./speakingCourse";
 import speakingAssessmentsRouter from "./speakingAssessments";
 import speakingDiagnosticsRouter from "./speakingDiagnostics";
 import adminRouter from "./admin";
+import { studentContext } from "../lib/studentContext";
 
 const router: IRouter = Router();
 
 // All application functionality is available without an account.
 router.use(healthRouter);
+router.use(studentContext);
 router.use(storageRouter);
 router.use(speakingRouter);
 router.use(speakingCourseRouter);

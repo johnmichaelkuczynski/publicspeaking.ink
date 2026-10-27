@@ -18,6 +18,11 @@ export const speakingTopicsTable = pgTable("speaking_topics", {
   position: integer("position").notNull().default(0),
 });
 
+export const speakingUploadsTable = pgTable("speaking_uploads", {
+  objectPath: text("object_path").primaryKey(),
+  ownerId: text("owner_id").notNull(),
+});
+
 export const speakingLecturesTable = pgTable("speaking_lectures", {
   id: serial("id").primaryKey(),
   topicId: integer("topic_id")
@@ -37,6 +42,7 @@ export const speakingLecturesTable = pgTable("speaking_lectures", {
 
 export const speakingAssignmentsTable = pgTable("speaking_assignments", {
   id: serial("id").primaryKey(),
+  ownerId: text("owner_id"),
   kind: text("kind").notNull(), // homework | test | capstone
   title: text("title").notNull(),
   unitNumber: integer("unit_number").notNull(),
@@ -67,6 +73,7 @@ export const speakingPromptsTable = pgTable("speaking_prompts", {
 
 export const speakingAttemptsTable = pgTable("speaking_attempts", {
   id: serial("id").primaryKey(),
+  ownerId: text("owner_id").notNull().default("legacy"),
   assignmentId: integer("assignment_id")
     .notNull()
     .references(() => speakingAssignmentsTable.id, { onDelete: "cascade" }),
@@ -80,6 +87,7 @@ export const speakingAttemptsTable = pgTable("speaking_attempts", {
 
 export const speakingResponsesTable = pgTable("speaking_responses", {
   id: serial("id").primaryKey(),
+  ownerId: text("owner_id").notNull().default("legacy"),
   attemptId: integer("attempt_id")
     .notNull()
     .references(() => speakingAttemptsTable.id, { onDelete: "cascade" }),
@@ -121,6 +129,7 @@ export const speakingResponsesTable = pgTable("speaking_responses", {
 // profile and the analytics that drive practice generation and the tutor.
 export const speakingActivityTable = pgTable("speaking_activity", {
   id: serial("id").primaryKey(),
+  ownerId: text("owner_id").notNull().default("legacy"),
   // practice_generated | response_graded | response_failed | attempt_finalized
   // | tutor_lecture | tutor_practice
   type: text("type").notNull(),
@@ -140,6 +149,7 @@ export const speakingActivityTable = pgTable("speaking_activity", {
 // accumulates; basedOnResponses tracks how fresh it is.
 export const speakingProfileTable = pgTable("speaking_profile", {
   id: serial("id").primaryKey(),
+  ownerId: text("owner_id").notNull().default("legacy").unique(),
   summary: text("summary"),
   strengths: jsonb("strengths"),
   focusAreas: jsonb("focus_areas"),
@@ -154,6 +164,7 @@ export const speakingProfileTable = pgTable("speaking_profile", {
 // All assessment rows are student progress and are wiped on course reset.
 export const speakingAssessmentsTable = pgTable("speaking_assessments", {
   id: serial("id").primaryKey(),
+  ownerId: text("owner_id").notNull().default("legacy"),
   // Stable slot identifier, e.g. "before-1", "after-3", or "custom".
   slotKey: text("slot_key").notNull(),
   scope: text("scope").notNull(), // before | after | custom

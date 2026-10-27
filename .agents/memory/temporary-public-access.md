@@ -1,10 +1,10 @@
 ---
-name: Temporary public access
-description: Why Podium currently has no user authentication and which session-like behavior must remain.
+name: Optional account access
+description: Public use must remain available alongside explicitly requested Clerk accounts.
 ---
 
-Podium currently has no user login or authentication gate. Every course, diagnostic, administrative, recording, grading, and database-backed feature must remain available without an account until a new login system is explicitly requested.
+The user has now explicitly requested Clerk Google login so users can save progress. This supersedes the temporary removal of login, but does not authorize removing anonymous access or any existing diagnostic, visitor-count, recording, or course functionality.
 
-**Why:** The user explicitly removed the Google login as a temporary measure but required all non-login functionality and data coherence to remain unchanged.
+**Why:** The user requested accounts for progress persistence, not an entry wall or a reduction in functionality.
 
-**How to apply:** Do not reintroduce authentication implicitly. Preserve the per-browser studio session used for object-storage ownership because it supports recordings and is not a user login. Retain historical login records and analytics unless the user separately asks to delete them.
+**How to apply:** Keep sign-in optional. Preserve historical data without assigning old shared progress to whichever account signs in first; its rightful owner cannot be inferred. Preserve recording ownership and historical login/visitor analytics.

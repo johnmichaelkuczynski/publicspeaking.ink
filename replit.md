@@ -29,13 +29,11 @@ Shared contracts and libraries live in `lib/` (OpenAPI spec, generated hooks/val
 
 ## 🔐 Authentication
 
-- **Direct Google OAuth 2.0** — no third-party auth service. The server (`api-server`) runs the standard authorization-code flow itself using `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` secrets and `google-auth-library`.
-- **Session = signed JWT cookie** (`podium_session`, httpOnly, 30 days) signed with `SESSION_SECRET`. No session table, no external session store.
-- **Routes:** `/api/auth/google` (redirect to Google), `/api/auth/google/callback` (code exchange + ID-token verification), `/api/auth/me`, `POST /api/auth/logout`.
-- **Server-side enforcement:** all `/api` routes require a session except health checks and `/api/auth/*` (401 otherwise).
-- **Google Cloud Console requirement:** the OAuth client must list each environment's callback as an authorized redirect URI: `https://<domain>/api/auth/google/callback`.
-- **Access control:** `ALLOWED_EMAILS` (comma-separated) restricts who may sign in; other Google accounts get `/?auth=unauthorized`. If unset, any Google account can sign in (a warning is logged on every sign-in).
-- **Single-user data model unchanged:** login gates access, but course progress is still one shared store (no per-user scoping).
+- **Optional Replit-managed Clerk authentication:** Google and email sign-in at `/sign-in` and `/sign-up`. The course remains publicly usable without signing in.
+- **Personal progress:** attempts, responses, assessments, profiles, practice assignments, activity, and uploaded recordings are scoped to a signed-in account or a signed anonymous browser cookie.
+- **Guest continuity:** signing in transfers the current browser's guest progress to that account. Signing out clears the frontend query cache.
+- **Historical data:** pre-account progress remains preserved as legacy data; it is not assigned to an arbitrary new account.
+- **Recording ownership:** retain anonymous studio sessions and upload ownership checks. Neither diagnostics nor visitor analytics is removed by authentication.
 
 ## ⚙️ Key Technical Notes
 
@@ -50,5 +48,5 @@ Shared contracts and libraries live in `lib/` (OpenAPI spec, generated hooks/val
 ## 👤 User Preferences
 
 - Caps in requests are for emphasis, not literal instructions.
-- **Auth must be direct Google OAuth with the user's own credentials** — never Clerk, never Replit-based login, never test/placeholder credentials.
+- **Authentication:** the user explicitly requested Clerk Google login to save progress; do not turn it into an entry wall.
 - Keep documentation polished and in the emoji-section-header style used in this README.

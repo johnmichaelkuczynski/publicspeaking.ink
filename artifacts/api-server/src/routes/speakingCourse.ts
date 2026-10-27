@@ -1,4 +1,5 @@
 import { Router, type IRouter, type Request, type Response } from "express";
+import { owned } from "../lib/studentContext";
 import { eq, asc, isNotNull, isNull, and } from "drizzle-orm";
 import {
   db,
@@ -57,7 +58,7 @@ router.post("/speaking/reset", async (req: Request, res: Response) => {
     const recordings = await db
       .select({ path: speakingResponsesTable.recordingObjectPath })
       .from(speakingResponsesTable)
-      .where(isNotNull(speakingResponsesTable.recordingObjectPath));
+      .where(and(owned(speakingResponsesTable), isNotNull(speakingResponsesTable.recordingObjectPath)));
 
     // All DB deletes run atomically: either every progress artifact is wiped or
     // none is, so a mid-operation failure can never leave a half-reset course.
@@ -65,32 +66,32 @@ router.post("/speaking/reset", async (req: Request, res: Response) => {
       await db.transaction(async (tx) => {
         const attempts = await tx
           .select({ id: speakingAttemptsTable.id })
-          .from(speakingAttemptsTable);
+          .from(speakingAttemptsTable).where(owned(speakingAttemptsTable));
         const activityRows = await tx
           .select({ id: speakingActivityTable.id })
-          .from(speakingActivityTable);
+          .from(speakingActivityTable).where(owned(speakingActivityTable));
         const assessmentRows = await tx
           .select({ id: speakingAssessmentsTable.id })
-          .from(speakingAssessmentsTable);
+          .from(speakingAssessmentsTable).where(owned(speakingAssessmentsTable));
         const practiceAssignments = await tx
           .select({ id: speakingAssignmentsTable.id })
           .from(speakingAssignmentsTable)
-          .where(isNotNull(speakingAssignmentsTable.practiceForAssignmentId));
+          .where(and(owned(speakingAssignmentsTable), isNotNull(speakingAssignmentsTable.practiceForAssignmentId)));
         const responsesCount = (
           await tx
             .select({ id: speakingResponsesTable.id })
-            .from(speakingResponsesTable)
+            .from(speakingResponsesTable).where(owned(speakingResponsesTable))
         ).length;
 
         // Responses cascade from attempts; practice prompts cascade from
         // practice assignments.
-        await tx.delete(speakingAttemptsTable);
-        await tx.delete(speakingActivityTable);
-        await tx.delete(speakingAssessmentsTable);
-        await tx.delete(speakingProfileTable);
+        await tx.delete(speakingAttemptsTable).where(owned(speakingAttemptsTable));
+        await tx.delete(speakingActivityTable).where(owned(speakingActivityTable));
+        await tx.delete(speakingAssessmentsTable).where(owned(speakingAssessmentsTable));
+        await tx.delete(speakingProfileTable).where(owned(speakingProfileTable));
         await tx
           .delete(speakingAssignmentsTable)
-          .where(isNotNull(speakingAssignmentsTable.practiceForAssignmentId));
+          .where(and(owned(speakingAssignmentsTable), isNotNull(speakingAssignmentsTable.practiceForAssignmentId)));
 
         return { attempts, activityRows, assessmentRows, practiceAssignments, responsesCount };
       });

@@ -1,4 +1,6 @@
 import { Router, type IRouter, type Request, type Response } from "express";
+import { owned, studentId, visibleAssignment } from "../lib/studentContext";
+import { ownsUpload } from "../lib/uploadOwnership";
 import { eq, asc, desc, inArray, isNull, and } from "drizzle-orm";
 import {
   db,
@@ -74,6 +76,7 @@ async function logActivity(entry: {
 }): Promise<void> {
   try {
     await db.insert(speakingActivityTable).values({
+      ownerId: studentId(),
       type: entry.type,
       assignmentId: entry.assignmentId ?? null,
       attemptId: entry.attemptId ?? null,
@@ -203,7 +206,7 @@ async function buildAssignmentSummary(a: AssignmentRow) {
   const attempts = await db
     .select()
     .from(speakingAttemptsTable)
-    .where(eq(speakingAttemptsTable.assignmentId, a.id))
+    .where(and(owned(speakingAttemptsTable), eq(speakingAttemptsTable.assignmentId, a.id)))
     .orderBy(asc(speakingAttemptsTable.id));
   const submitted = attempts.filter((x) => x.status === "submitted");
   const inProgress = attempts.find((x) => x.status === "in_progress");
@@ -318,7 +321,7 @@ router.get("/speaking/overview", async (_req, res) => {
     (s, u) => s + u.assignments.filter((a) => a.status === "submitted").length,
     0,
   );
-  const allAttempts = await db.select().from(speakingAttemptsTable);
+  const allAttempts = await db.select().from(speakingAttemptsTable).where(owned(speakingAttemptsTable));
   const practiceIds = await practiceAssignmentIdSet();
   const officialAttempts = allAttempts.filter(
     (a) => !practiceIds.has(a.assignmentId),
@@ -471,7 +474,7 @@ router.get(
     const [assignment] = await db
       .select()
       .from(speakingAssignmentsTable)
-      .where(eq(speakingAssignmentsTable.id, assignmentId));
+      .where(and(visibleAssignment(), eq(speakingAssignmentsTable.id, assignmentId)));
     if (!assignment) {
       res.status(404).json({ error: "assignment not found" });
       return;
@@ -501,7 +504,7 @@ router.post(
     const [assignment] = await db
       .select()
       .from(speakingAssignmentsTable)
-      .where(eq(speakingAssignmentsTable.id, assignmentId));
+      .where(and(visibleAssignment(), eq(speakingAssignmentsTable.id, assignmentId)));
     if (!assignment) {
       res.status(404).json({ error: "assignment not found" });
       return;
@@ -510,7 +513,7 @@ router.post(
     const existing = await db
       .select()
       .from(speakingAttemptsTable)
-      .where(eq(speakingAttemptsTable.assignmentId, assignmentId))
+      .where(and(owned(speakingAttemptsTable), eq(speakingAttemptsTable.assignmentId, assignmentId)))
       .orderBy(desc(speakingAttemptsTable.id));
     const resume = existing.find((a) => a.status === "in_progress");
 
@@ -519,7 +522,7 @@ router.post(
       (
         await db
           .insert(speakingAttemptsTable)
-          .values({ assignmentId })
+          .values({ assignmentId, ownerId: studentId() })
           .returning()
       )[0]!;
 
@@ -531,6 +534,7 @@ router.get("/speaking/attempts", async (_req, res) => {
   const attempts = await db
     .select()
     .from(speakingAttemptsTable)
+    .where(owned(speakingAttemptsTable))
     .orderBy(desc(speakingAttemptsTable.id));
   const assignmentIds = [...new Set(attempts.map((a) => a.assignmentId))];
   const assignments = assignmentIds.length
@@ -573,7 +577,7 @@ router.get("/speaking/attempts/:attemptId", async (req, res): Promise<void> => {
   const [attempt] = await db
     .select()
     .from(speakingAttemptsTable)
-    .where(eq(speakingAttemptsTable.id, attemptId));
+    .where(and(owned(speakingAttemptsTable), eq(speakingAttemptsTable.id, attemptId)));
   if (!attempt) {
     res.status(404).json({ error: "attempt not found" });
     return;
@@ -599,7 +603,7 @@ router.post(
     const [attempt] = await db
       .select()
       .from(speakingAttemptsTable)
-      .where(eq(speakingAttemptsTable.id, attemptId));
+      .where(and(owned(speakingAttemptsTable), eq(speakingAttemptsTable.id, attemptId)));
     if (!attempt) {
       res.status(404).json({ error: "attempt not found" });
       return;
@@ -673,6 +677,10 @@ router.post(
       let speechMetrics: SpeechMetrics | null = null;
 
       if (body.mode === "spoken") {
+        if (!(await ownsUpload(body.recordingObjectPath!))) {
+          res.status(403).json({ error: "This recording belongs to a different session." });
+          return;
+        }
         // Mark the freshly uploaded recording as privately owned by this
         // studio session so the /storage/objects route only serves it back to
         // the same student. Best-effort: a failure here must not block grading,
@@ -755,6 +763,7 @@ router.post(
       const [saved] = await db
         .insert(speakingResponsesTable)
         .values({
+          ownerId: studentId(),
           attemptId,
           promptId: body.promptId,
           mode: body.mode,
@@ -806,6 +815,7 @@ router.post(
       const [failedRow] = await db
         .insert(speakingResponsesTable)
         .values({
+          ownerId: studentId(),
           attemptId,
           promptId: body.promptId,
           mode: body.mode,
@@ -842,7 +852,7 @@ router.post(
     const [attempt] = await db
       .select()
       .from(speakingAttemptsTable)
-      .where(eq(speakingAttemptsTable.id, attemptId));
+      .where(and(owned(speakingAttemptsTable), eq(speakingAttemptsTable.id, attemptId)));
     if (!attempt) {
       res.status(404).json({ error: "attempt not found" });
       return;
@@ -867,7 +877,7 @@ router.post(
     const [updated] = await db
       .update(speakingAttemptsTable)
       .set({ status: "submitted", submittedAt: new Date(), overallScore })
-      .where(eq(speakingAttemptsTable.id, attemptId))
+      .where(and(owned(speakingAttemptsTable), eq(speakingAttemptsTable.id, attemptId)))
       .returning();
 
     const [finAssignment] = await db
@@ -892,7 +902,7 @@ router.post(
 
 router.get("/speaking/progress", async (_req, res) => {
   const units = await Promise.all([1, 2, 3, 4].map(buildUnit));
-  const allAssignmentsRaw = await db.select().from(speakingAssignmentsTable);
+  const allAssignmentsRaw = await db.select().from(speakingAssignmentsTable).where(visibleAssignment());
   // Official progress excludes practice sets entirely.
   const allAssignments = allAssignmentsRaw.filter(
     (a) => a.practiceForAssignmentId == null,
@@ -902,7 +912,7 @@ router.get("/speaking/progress", async (_req, res) => {
       .filter((a) => a.practiceForAssignmentId != null)
       .map((a) => a.id),
   );
-  const attempts = (await db.select().from(speakingAttemptsTable)).filter(
+  const attempts = (await db.select().from(speakingAttemptsTable).where(owned(speakingAttemptsTable))).filter(
     (a) => !practiceIds.has(a.assignmentId),
   );
   const officialAttemptIds = new Set(attempts.map((a) => a.id));
@@ -928,7 +938,7 @@ router.get("/speaking/progress", async (_req, res) => {
   const bestScore =
     submittedScores.length > 0 ? Math.max(...submittedScores) : null;
 
-  const allResponses = (await db.select().from(speakingResponsesTable)).filter(
+  const allResponses = (await db.select().from(speakingResponsesTable).where(owned(speakingResponsesTable))).filter(
     (r) => officialAttemptIds.has(r.attemptId),
   );
   const gradedResponses = allResponses.filter((r) => r.status === "graded");
@@ -1046,7 +1056,7 @@ router.get("/speaking/flagged", async (_req, res) => {
   // Every response that went through AI-authorship screening has an aiScore.
   // Those form the screened denominator; the flagged set is anything where the
   // static AI layer or the keystroke (diachronic) layer tripped.
-  const responses = (await db.select().from(speakingResponsesTable)).filter(
+  const responses = (await db.select().from(speakingResponsesTable).where(owned(speakingResponsesTable))).filter(
     (r) => r.aiScore != null,
   );
   const flagged = responses
@@ -1126,7 +1136,7 @@ router.post(
     const [assignment] = await db
       .select()
       .from(speakingAssignmentsTable)
-      .where(eq(speakingAssignmentsTable.id, assignmentId));
+      .where(and(visibleAssignment(), eq(speakingAssignmentsTable.id, assignmentId)));
     if (!assignment) {
       res.status(404).json({ error: "assignment not found" });
       return;
@@ -1180,13 +1190,14 @@ router.post(
         .select({ id: speakingAssignmentsTable.id })
         .from(speakingAssignmentsTable)
         .where(
-          eq(speakingAssignmentsTable.practiceForAssignmentId, assignmentId),
+          and(owned(speakingAssignmentsTable), eq(speakingAssignmentsTable.practiceForAssignmentId, assignmentId)),
         );
       const practiceNumber = priorPractice.length + 1;
 
       const [practiceAssignment] = await db
         .insert(speakingAssignmentsTable)
         .values({
+          ownerId: studentId(),
           kind: assignment.kind,
           title: `Practice #${practiceNumber} — ${assignment.title}`,
           unitNumber: assignment.unitNumber,
@@ -1214,7 +1225,7 @@ router.post(
 
       const [attempt] = await db
         .insert(speakingAttemptsTable)
-        .values({ assignmentId: practiceAssignment!.id })
+        .values({ assignmentId: practiceAssignment!.id, ownerId: studentId() })
         .returning();
 
       await logActivity({
@@ -1254,7 +1265,7 @@ router.get(
       .select()
       .from(speakingAssignmentsTable)
       .where(
-        eq(speakingAssignmentsTable.practiceForAssignmentId, assignmentId),
+        and(owned(speakingAssignmentsTable), eq(speakingAssignmentsTable.practiceForAssignmentId, assignmentId)),
       )
       .orderBy(desc(speakingAssignmentsTable.id));
 
@@ -1275,7 +1286,7 @@ router.get(
         const attempts = await db
           .select()
           .from(speakingAttemptsTable)
-          .where(eq(speakingAttemptsTable.assignmentId, pa.id))
+          .where(and(owned(speakingAttemptsTable), eq(speakingAttemptsTable.assignmentId, pa.id)))
           .orderBy(desc(speakingAttemptsTable.id));
         const attempt = attempts[0];
 
@@ -1332,7 +1343,7 @@ router.post(
     const [attempt] = await db
       .select()
       .from(speakingAttemptsTable)
-      .where(eq(speakingAttemptsTable.id, attemptId));
+      .where(and(owned(speakingAttemptsTable), eq(speakingAttemptsTable.id, attemptId)));
     if (!attempt) {
       res.status(404).json({ error: "attempt not found" });
       return;

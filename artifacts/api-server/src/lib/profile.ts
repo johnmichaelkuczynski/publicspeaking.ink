@@ -1,13 +1,11 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { eq } from "drizzle-orm";
 import { db, speakingProfileTable } from "@workspace/db";
+import { owned, studentId } from "./studentContext";
 import {
   computeSpeakingAnalytics,
   recentFeedback,
   type SpeakingAnalytics,
 } from "./analytics";
-
-const PROFILE_ID = 1;
 
 export interface SpeakingProfile {
   summary: string | null;
@@ -156,7 +154,7 @@ export async function getSpeakingProfile(): Promise<SpeakingProfile> {
   const [stored] = await db
     .select()
     .from(speakingProfileTable)
-    .where(eq(speakingProfileTable.id, PROFILE_ID));
+    .where(owned(speakingProfileTable));
 
   if (total === 0) {
     return {
@@ -191,10 +189,10 @@ export async function getSpeakingProfile(): Promise<SpeakingProfile> {
         basedOnResponses: total,
         generatedAt,
       })
-      .where(eq(speakingProfileTable.id, PROFILE_ID));
+      .where(owned(speakingProfileTable));
   } else {
     await db.insert(speakingProfileTable).values({
-      id: PROFILE_ID,
+      ownerId: studentId(),
       summary: generated.summary,
       strengths: generated.strengths,
       focusAreas: generated.focusAreas,
@@ -226,7 +224,7 @@ export async function buildProfileContext(): Promise<string> {
   const [stored] = await db
     .select()
     .from(speakingProfileTable)
-    .where(eq(speakingProfileTable.id, PROFILE_ID));
+    .where(owned(speakingProfileTable));
 
   const parts: string[] = [analyticsDigest(analytics)];
   if (stored?.summary) {

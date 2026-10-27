@@ -4,6 +4,6 @@
 - [Speaking metrics units](speaking-metrics-units.md) — server `fillerRate` is already per-100-words, not a 0–1 fraction; don't multiply by 100 when displaying.
 - [Podium speak-course design](speak-course-design.md) — intentional scope choices (GPTZero diagnostics-only, 502-on-AI-fail, DB-direct synthetic spoken path) so reviews don't re-flag them.
 - [Assessment grading parity](assessment-grading.md) — assessments are a separate flow from assignments and silently gave no feedback; every speech-submit surface must run evaluateResponse + persist.
-- [Temporary public access](temporary-public-access.md) — Podium currently has no user login; keep all features public while preserving recording-storage sessions and historical login analytics.
+- [Optional account access](temporary-public-access.md) — Clerk accounts explicitly requested for saved progress; retain anonymous functionality and do not assign legacy shared data arbitrarily.
 - [Storage readiness](storage-readiness.md) — configured storage paths do not prove bucket access; verify signing and a real upload/read-back separately from user login.
 - [Course navigation](course-navigation.md) — keep direct arrow navigation between units and lectures; never require returning to the unit overview to continue.

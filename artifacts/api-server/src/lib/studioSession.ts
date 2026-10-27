@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
 import type { Request, Response } from "express";
+import { getAuth } from "@clerk/express";
 
 /**
  * Podium has no login system — it is a single-user studio. To still protect
@@ -28,6 +29,8 @@ interface RequestWithStudio extends Request {
  * repeated calls within the same request return a consistent value.
  */
 export function getStudioUserId(req: Request, res: Response): string {
+  const userId = getAuth(req).userId;
+  if (userId) return `clerk:${userId}`;
   const typed = req as RequestWithStudio;
   if (typed.studioUserId) {
     return typed.studioUserId;
